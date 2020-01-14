@@ -1,0 +1,1 @@
+screen /gsc/software/linux-x86_64-centos5/matlab-2013a/bin/matlab -nodisplay -nodesktop -r "run DEfine_15hr_R132H.m; run DEfine_15hr_DKO.m; run DEfine_15hr_R132H.m; run DEfine_15hr_TET2KO.m; run DEfine_15hr_TET3KO.m; run DEfine_72hr_DKO.m; run DEfine_72hr_R132H.m; run DEfine_72hr_TET2KO.m; run DEfine_72hr_TET3KO.m; quit"
