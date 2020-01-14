@@ -12,3 +12,5 @@ Subdirectories represent pipelines for examining:
 4) [GenerateFiles](https://github.com/Jwong684/bioinformatics/tree/master/analyses/GenerateFiles) - for generating downstream processed data-files from .bam (i.e. .wig, .bw); or for converting files to be used for uploading onto genomeBrowsers (i.e. UCSC)
 
 5) [histoneChIP-seq](https://github.com/Jwong684/bioinformatics/tree/master/analyses/histoneChIP) - scripts used for analyses of histone ChIP-seq data.
+
+6) [sampleCoursework](https://github.com/Jwong684/bioinformatics/tree/master/analyses/sampleCoursework) - some simple analyses in R as part of previous coursework.
