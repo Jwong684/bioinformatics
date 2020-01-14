@@ -1,0 +1,288 @@
+---
+title: "del7 final"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loading libraries}
+library(rlang)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(reshape2)
+library(tibble)
+library(pheatmap)
+library(VennDiagram)
+library(ggrepel)
+library(ggpubr)
+#library(Deducer)
+library(broom)
+library(boot)
+library(data.table)
+library(Rtsne)
+library(multcomp)
+library(FSA)
+library(pvclust)
+library(readxl)
+library(stringr)
+library(GGally)
+library(xlsx)
+library(readxl)
+library(cluster)
+library(snow)
+library(UpSetR)
+library(overLapPlot)
+library(forcats)
+#library(gridExtra) from upsetR
+library(kableExtra)
+```
+
+##### 5mC analyses
+
+Description of analysis (dataset is unpublished):
+
+In brief, I had three meDIP-seq libraries to compare; a "wildtype" non-leukemic (wt), a "mutant" leukemic (R132H), and a novel "modified mutant" (del7) set. The "mutant" has been shown to be associated with a hypermethylation state at regulatory regions. The aim of the analysis was to examine the methylation state of this "modified mutant" relative to the "mutant".
+
+To examine the differences in 5mC signal, I called differential methylation using the aforementioned pipeline between the wildtype and mutant. Using the hypermethylated regions between R132H vs wt as a reference, I measured the 5mC density at these same regions in the del7.
+
+I then examined the same changes at key regulatory regions (hypermethylated CpG island promoters and active enhancers).
+
+Lastly, I examined the changes in 5hmC at these same regions.
+
+```{r 5mC analyses}
+##### examining distribution of 5mC signal at hypermethylated regions
+global_5mC <- read.delim("/home/jawong/src/del7/final/DMR/DMR_CpG/mIDH/hypermeth/DMR.union.RPKM", skip = 1, header = F) %>%
+  setnames(c('chr',  'start', 'end' ,  'wt' ,   '72R132H'  , 'del7')) %>%
+  gather(key = lib, value = rpkm, 4:9)
+
+global_5mC %>%
+  ggplot(., aes(x = lib, y = rpkm + 0.01)) +
+  geom_boxplot() +
+  coord_flip() +
+  #scale_y_log10() +
+  ylab("mC coverage (log rpkm)") + xlab("Libs (meDIP)") +
+  theme_bw() + ylim(0, 500) +
+  theme(text = element_text(size = 20))
+
+##### 5mC signal at hypermethylated CpG islands and active enhancers ##### 
+
+#enhancers
+enh <- read.delim("/home/jawong/src/del7/final/DMR/DMR_CpG/mIDH/hypermeth/DMR.hyper_enhancers.RPKM", skip = 1, header = F) %>%
+  setnames(c('chr',  'start', 'end' ,  'wt' ,     '72R132H'  , 'del7')) %>%
+  gather(key = lib, value = rpkm, 4:9)
+
+(gg_enh <- enh %>%
+  ggplot(., aes(x = lib, y = rpkm + 0.01)) +
+  geom_boxplot() +
+  coord_flip() +
+  scale_y_log10() +
+  ylab("mC coverage (log rpkm)") + xlab("Libs (meDIP)") +
+  theme_bw() +
+  theme(text = element_text(size = 20)))
+
+(gg_enh <- enh %>% dplyr::filter(lib %in% c("wt", "72R132H", "del7")) %>% 
+                                   mutate(cell = ifelse(lib == "wt", "IDHwt",
+                                                        ifelse(lib == "del7", "del7", "IDHm"))) %>%
+    mutate(cell = factor(cell)) %>% 
+    mutate(cell = factor(cell, levels(cell)[c(1,3,2)])) %>% 
+  ggplot(., aes(x = cell, y = rpkm)) +
+  geom_boxplot() +
+  coord_flip() +
+  ylab("5mC coverage (rpkm)") + xlab("Libs (meDIP)") +
+  theme_bw() +
+  theme(text = element_text(size = 20)))
+
+
+cgip <- read.delim("/home/jawong/src/del7/final/DMR/DMR_CpG/mIDH/hypermeth/DMR.hyper_CGIpromoters.RPKM", skip = 1, header = F) %>%
+  setnames(c('chr',  'start', 'end' ,  'wt' ,     '72R132H'  , 'del7')) %>%
+  gather(key = lib, value = rpkm, 4:9)
+
+(gg_cgip <- cgip %>%
+  ggplot(., aes(x = lib, y = rpkm + 0.01)) +
+  geom_boxplot() +
+  coord_flip() +
+  scale_y_log10() +
+  ylab("mC coverage (log rpkm)") + xlab("Libs (meDIP)") +
+  theme_bw() +
+  theme(text = element_text(size = 20)))
+
+(gg_cgip <- cgip %>% dplyr::filter(lib %in% c("wt", "72R132H", "del7")) %>% 
+                                   mutate(cell = ifelse(lib == "wt", "IDHwt",
+                                                        ifelse(lib == "del7", "del7", "IDHm"))) %>%
+    mutate(cell = factor(cell)) %>% 
+    mutate(cell = factor(cell, levels(cell)[c(1,3,2)])) %>% 
+  ggplot(., aes(x = cell, y = rpkm)) +
+  geom_boxplot() +
+  coord_flip() +
+  #scale_y_log10() +
+  ylab("5mC coverage (rpkm)") + xlab("Libs (meDIP)") +
+  theme_bw() +
+  theme(text = element_text(size = 20)))
+
+rbind(
+  cgip %>% dplyr::filter(lib %in% c("wt", "72R132H", "del7")) %>% 
+                                   mutate(cell = ifelse(lib == "wt", "IDHwt",
+                                                        ifelse(lib == "del7", "del7", "IDHm"))) %>%
+    mutate(cell = factor(cell)) %>% 
+    mutate(cell = factor(cell, levels(cell)[c(1,3,2)])) %>%  mutate(region = "CGI promoter"),
+  enh %>% dplyr::filter(lib %in% c("wt", "72R132H", "del7")) %>% 
+                                   mutate(cell = ifelse(lib == "wt", "IDHwt",
+                                                        ifelse(lib == "del7", "del7", "IDHm"))) %>%
+    mutate(cell = factor(cell)) %>% 
+    mutate(cell = factor(cell, levels(cell)[c(1,3,2)])) %>% mutate(region = "Enhancers")
+) %>% 
+  ggplot(., aes(x = cell, y = rpkm)) +
+  geom_boxplot() +
+  facet_wrap(~region, nrow = 2) +
+  coord_flip() +
+  #scale_y_log10() +
+  ylab("5mC coverage (rpkm)") + xlab("Libs (meDIP)") +
+  theme_linedraw() +
+  theme(text = element_text(size = 20))
+
+##### stat tests ######
+#at enhancers
+  enh %>% dplyr::filter(lib %in% c("wt", "72R132H", "del7")) %>% 
+                                   mutate(cell = ifelse(lib == "wt", "IDHwt",
+                                                        ifelse(lib == "del7", "del7", "IDHm"))) %>% 
+  aov(data=., rpkm ~ lib) %>% 
+  TukeyHSD()
+#                    diff       lwr        upr    p adj
+# del7-72R132H -51.819701 -55.23967 -48.399734 0.000000 ****
+# wt-72R132H   -57.024197 -63.54778 -50.500617 0.000000 ****
+# wt-del7       -5.204496 -11.76910   1.360113 0.150831
+
+#at CGIs
+  cgip %>% dplyr::filter(lib %in% c("wt", "72R132H", "del7")) %>% 
+                                   mutate(cell = ifelse(lib == "wt", "IDHwt",
+                                                        ifelse(lib == "del7", "del7", "IDHm"))) %>% 
+  aov(data=., rpkm ~ lib) %>% 
+  TukeyHSD()
+#                    diff        lwr        upr    p adj
+# del7-72R132H -64.096703 -66.630300 -61.563107 0.00e+00 ****
+# wt-72R132H   -69.907681 -73.035056 -66.780305 0.00e+00 ****
+# wt-del7       -5.810977  -8.980762  -2.641193 5.21e-05 *
+```
+
+The level of 5mC at enhancers and CGI promoters is significantly greater in R132H than in wt or del7. A small increase in 5mC levels in del7 relative to wt at CGI promoters was observed.
+
+##### 5hmC analyses 
+
+Examining 5hmC changes at these same hypermethylated regions. (Note I only had hmeDIP data for R132H and del7).
+
+```{r 5hmc}
+##### 5mC signal at hypermethylated regions ##### 
+tmph <- read.delim("/home/jawong/src/del7/final/DMR/DMR_CpG/mIDH/hypermeth/DMR.union_hmc.RPKM", skip = 1, header = F) %>%
+  setnames(c('chr',  'start', 'end' , 'IDHm unt', 'IDHm vitc', 'del7 unt', 'del7 vitc')) %>%
+  gather(key = lib, value = rpkm, 4:7)
+
+tmph %>%
+  ggplot(., aes(x = lib, y = rpkm + 0.01)) +
+  geom_boxplot() +
+  coord_flip() +
+  scale_y_log10() +
+  ylab("hmC coverage (log rpkm)") + xlab("Libs (hmeDIP)") +
+  theme_bw() +
+  theme(text = element_text(size = 20))
+
+enhh<- read.delim("/home/jawong/src/del7/final/DMR/DMR_CpG/mIDH/hypermeth/DMR.enh_hmc.RPKM", skip = 1, header = F) %>%
+  setnames(c('chr',  'start', 'end' , 'IDHm unt', 'IDHm vitc', 'del7 unt', 'del7 vitc')) %>%
+  gather(key = lib, value = rpkm, 4:7)
+
+(gg_enhh <- enhh %>%
+  ggplot(., aes(x = lib, y = rpkm + 0.01)) +
+  geom_boxplot() +
+  coord_flip() +
+  scale_y_log10() +
+  ylab("hmC coverage (log rpkm)") + xlab("Libs (hmeDIP)") +
+  theme_bw() +
+  theme(text = element_text(size = 20)))
+
+cgiph <- read.delim("/home/jawong/src/del7/final/DMR/DMR_CpG/mIDH/hypermeth/DMR.cgip_hmc.RPKM", skip = 1, header = F) %>%
+  setnames(c('chr',  'start', 'end' , 'IDHm unt', 'IDHm vitc', 'del7 unt', 'del7 vitc')) %>%
+  gather(key = lib, value = rpkm, 4:7)
+
+(gg_cgiph <- cgiph %>%
+  ggplot(., aes(x = lib, y = rpkm + 0.01)) +
+  geom_boxplot() +
+  coord_flip() +
+  scale_y_log10() +
+  ylab("hmC coverage (log rpkm)") + xlab("Libs (hmeDIP)") +
+  theme_bw() +
+  theme(text = element_text(size = 20)))
+
+rbind(
+  cgiph %>% dplyr::filter(lib %in% c("IDHm unt", "del7 unt")) %>% 
+                                   mutate(cell = ifelse(lib == "del7 unt", "del7", "IDHm")) %>%
+    mutate(region = "CGI promoter"),
+  enhh %>% dplyr::filter(lib %in% c("IDHm unt", "del7 unt")) %>% 
+                                   mutate(cell = ifelse(lib == "del7 unt", "del7", "IDHm")) %>%
+    mutate(region = "Enhancers")
+) %>% 
+  ggplot(., aes(x = cell, y = rpkm)) +
+  geom_boxplot() +
+  facet_wrap(~region, nrow = 2) +
+  coord_flip() +
+  #scale_y_log10() +
+  ylab("5hmC coverage (rpkm)") + xlab("Libs (hmeDIP)") +
+  theme_linedraw() +
+  theme(text = element_text(size = 20))
+
+###### 5hmC signal overall ####
+#del7 vs 72hr R132H
+rbind(
+  read.delim("/home/jawong/src/del7/final/hmedip_DKO/union/DMR_fc/DHR/DMR.del7_untreated_hmedip.bwamem.sorted.dups_marked_72hr_R132H_unt_hmedip.del7_untreated_hmedip.bwamem.sorted.dups_marked.unique.bed", header = F) %>% 
+  setnames(c('chr',  'start', 'end' , 'id', 'del7', 'IDHm', 'fc')) %>% 
+  mutate(change = "lose 5hmc"),
+   read.delim("/home/jawong/src/del7/final/hmedip_DKO/union/DMR_fc/DHR/DMR.del7_untreated_hmedip.bwamem.sorted.dups_marked_72hr_R132H_unt_hmedip.72hr_R132H_unt_hmedip.unique.bed", header = F) %>% 
+    setnames(c('chr',  'start', 'end' , 'id', 'del7', 'IDHm', 'fc')) %>% 
+  mutate(change = "gain 5hmc")
+) %>% 
+  gather(key = cell, value = rpkm, 5:6) %>% 
+  ggplot(., aes(x = cell, y = rpkm, fill = change)) +
+  #facet_wrap(~change) +
+  geom_boxplot() + coord_flip() +
+  scale_y_log10() + xlab("Libs (hmeDIP)") + ylab("5hmC coverage (log rpkm)") +
+  theme_linedraw() +
+  theme(text = element_text(size = 20))
+
+#union file rpkm of peaks
+read.delim("/home/jawong/src/del7/final/hmedip_DKO/union/DMR_fc/del7_untreated_hmedip.bwamem.sorted.dups_marked_72hr_R132H_unt_hmedip.union.RPKM", header = T) %>% 
+  setnames(c('chr',  'start', 'end' , 'del7', 'IDHm')) %>% 
+  gather(key = cell, value = rpkm, 4:5) %>% 
+  ggplot(., aes(x = cell, y = rpkm + 0.01)) +
+  geom_boxplot() + coord_flip() +
+  scale_y_log10() + xlab("Libs (hmeDIP)") + ylab("5hmC coverage (log rpkm)") +
+  theme_bw() +
+  theme(text = element_text(size = 20), plot.margin = margin(10, 100, 10, 10))
+
+t.test(read.delim("/home/jawong/src/del7/final/hmedip_DKO/union/DMR_fc/del7_untreated_hmedip.bwamem.sorted.dups_marked_72hr_R132H_unt_hmedip.union.RPKM", header = T) %>% setnames(c('chr',  'start', 'end' , 'del7', 'IDHm')) %>% 
+         dplyr::select(del7) %>% unlist(),
+       read.delim("/home/jawong/src/del7/final/hmedip_DKO/union/DMR_fc/del7_untreated_hmedip.bwamem.sorted.dups_marked_72hr_R132H_unt_hmedip.union.RPKM", header = T) %>% setnames(c('chr',  'start', 'end' , 'del7', 'IDHm')) %>% 
+         dplyr::select(IDHm) %>% unlist(), 
+       paired = T, alternative = "less")
+# p < 2.2e-16
+
+#del7 vs 15hr R132H
+rbind(
+  read.delim("/home/jawong/src/del7/final/hmedip_DKO/union/DMR_fc/DHR/DMR.del7_untreated_hmedip.bwamem.sorted.dups_marked_15hr_R132H_unt_hmedip.del7_untreated_hmedip.bwamem.sorted.dups_marked.unique.bed", header = F) %>% 
+  setnames(c('chr',  'start', 'end' , 'id', 'del7', 'IDHm', 'fc')) %>% 
+  mutate(change = "lose 5hmc"),
+   read.delim("/home/jawong/src/del7/final/hmedip_DKO/union/DMR_fc/DHR/DMR.del7_untreated_hmedip.bwamem.sorted.dups_marked_15hr_R132H_unt_hmedip.15hr_R132H_unt_hmedip.unique.bed", header = F) %>% 
+    setnames(c('chr',  'start', 'end' , 'id', 'del7', 'IDHm', 'fc')) %>% 
+  mutate(change = "gain 5hmc")
+) %>% 
+  gather(key = cell, value = rpkm, 5:6) %>% 
+  ggplot(., aes(x = cell, y = rpkm, fill = change)) +
+  geom_boxplot() + coord_flip() +
+  scale_y_log10() +
+  theme_linedraw()
+```
+
+There is a significantly (p < 2.2e-16) lower level of 5hmC in del7 than in R132H.

@@ -23,3 +23,7 @@ output: fractional methylation (.dip) files of every CpG bin for each chromosome
 
 6) [DMR.sh](https://github.com/Jwong684/bioinformatics/tree/master/analyses/meDIP/DMR.sh) - customizable DMR caller (allows for pairwise comparisons between either cell type or treatment groups)
 Uses an in-lab DMR caller (that calculates methylation differences for every CpG bin between two libraries, essentially binarizing whether a CpG is differentially methylated or not, then stitching differentially methylated CpGs together in a 300bp window to create a DMR)
+
+Comparative analyses:
+
+[del7_final.Rmd](https://github.com/Jwong684/bioinformatics/tree/master/analyses/meDIP/del7_final.Rmd) - In a collaboration, I examined the 5mC state of a modified mutant leukemic cell line relative to that of a well-characterized mutant leukemic cell that is associated with a DNA hypermethylation phenotype.
