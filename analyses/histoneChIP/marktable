@@ -1,0 +1,12 @@
+unt     H3K27ac H3K27ac_unt.bed
+unt     H3K36me3        H3K36me3_unt.bed
+unt     H3K4me3 H3K4me3_unt.bed
+vitc    H3K27ac H3K27ac_vitc.bed
+vitc    H3K36me3        H3K36me3_vitc.bed
+vitc    H3K4me3 H3K4me3_vitc.bed
+unt     H3K27me3        H3K27me3_unt.bed
+unt     H3K4me1 H3K4me1_unt.bed
+unt     H3K9me3 H3K9me3_unt.bed
+vitc    H3K27me3        H3K27me3_vitc.bed
+vitc    H3K4me1 H3K4me1_vitc.bed
+vitc    H3K9me3 H3K9me3_vitc.bed
