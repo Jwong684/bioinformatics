@@ -15,3 +15,5 @@ iii) CRISPResso
 2) [trim.sh](https://github.com/Jwong684/bioinformatics/tree/master/ampliconLib/trim.sh) - pipes the list into a function that collapses identical reads and trims barcodes using gnu parallel.
 3) [makeList2.sh](https://github.com/Jwong684/bioinformatics/tree/master/ampliconLib/makeList2.sh) - generates a secondary list of trimmed .fastq files to be processed.
 4) [CRISPResso.sh](https://github.com/Jwong684/bioinformatics/tree/master/ampliconLib/CRISPResso.sh) - pipes the secondary list into a function that aligns trimmed reads to a reference amplicon sequence and determines the proportion of edited cells based on the proportion of reads that have an indel around the cut-site.
+
+[compile_stats.sh](https://github.com/Jwong684/bioinformatics/tree/master/ampliconLib/compile_stats.sh) - this will take all processed fastq files and compile everything into a nice table format (showing proportion of reads that have an indel at the CRISPR cut-site)
