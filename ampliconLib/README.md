@@ -6,9 +6,9 @@ To generate a bulk CRISPR-KO population within a cell line, I employed IDT's alt
 Fastq files were extracted and aligned to the reference amplicon sequence using the CRISPResso suite (https://github.com/lucapinello/CRISPResso). Reads with a Phred score of at least 30 were taken and indels were considered successful non-homologous end joining events if they occur within 1bp of the cut-site. Substitutions were ignored to provide a conservative estimate of knockout efficiency.
 
 Dependencies:
--printseq-lite.pl
--cutadapt
--CRISPResso
+i) printseq-lite.pl
+ii) cutadapt
+iii) CRISPResso
 
 [runall.sh](https://github.com/Jwong684/bioinformatics/tree/master/ampliconLib/runall.sh) will run all of the scripts in the order:
 1) [makeList.sh](https://github.com/Jwong684/bioinformatics/tree/master/ampliconLib/makeList.sh) - generates a list of .fastq files to be processed.
