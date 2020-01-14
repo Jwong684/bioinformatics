@@ -10,4 +10,4 @@ As a result, a simple peak caller (MACS2) can be used to determine all enriched 
 Differentially 5hmC-marked analysis pipeline:
 1) [callPeaks](https://github.com/Jwong684/bioinformatics/tree/master/analyses/hmeDIP/callPeaks.sh) (5hmC-immunoprecipitated DNA) - uses MACS2 to call narrow-peaks for every hmeDIP-seq library.
 
-2) [DHR_call](https://github.com/Jwong684/bioinformatics/tree/master/analyses/hmeDIP/DHR_call.sh) - uses depptools RPKM-normalized bigWig files to calculate signal density at peaks; uses a fold-change and signal cut-off to determine differentially marked regions.
+2) [DHR_call](https://github.com/Jwong684/bioinformatics/tree/master/analyses/hmeDIP/DHR_call.sh) - uses deeptools RPKM-normalized bigWig files to calculate signal density at peaks; uses a fold-change and signal cut-off to determine differentially marked regions.
