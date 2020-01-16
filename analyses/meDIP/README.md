@@ -14,7 +14,7 @@ output: Coverage (.cov) files of every chromosome highlighting the raw coverage 
 2) [CG_empty_500_chr.RegionsCoverageFromWigCalculator.sh](https://github.com/Jwong684/bioinformatics/tree/master/analyses/meDIP/CG_empty_500_chr.RegionsCoverageFromWigCalculator.sh) - uses a custom java script to calculate the raw coverage (from a wiggle .wig file) of 5mC signal based on a reference CG-empty (500 bp) bed file.
 output: Coverage (.cov) files of every chromosome highlighting the raw coverage of meDIP signal at CG empty regions
 
-- can used [meDIP_fracMeth_QC.R]((https://github.com/Jwong684/bioinformatics/tree/master/analyses/meDIP/meDIP_fracMeth_QC.R) to generate ECDFs of signal and background faceted for each meDIP library. A good separation between the two ECDF curves would indicate that there is a good signal-to-noise ratio for meDIP.
+- can use [meDIP_fracMeth_QC.R]((https://github.com/Jwong684/bioinformatics/tree/master/analyses/meDIP/meDIP_fracMeth_QC.R) to generate ECDFs of signal and background faceted for each meDIP library. A good separation between the two ECDF curves would indicate that there is a good signal-to-noise ratio for meDIP.
 
 3) [medip_score.m](https://github.com/Jwong684/bioinformatics/tree/master/analyses/meDIP/medip_score.m) - uses depptools RPKM-normalized bigWig files to calculate signal density at peaks; uses a fold-change and signal cut-off to determine differentially marked regions.
 output: fractional methylation (.dip) files of every CpG bin for each chromosome.
